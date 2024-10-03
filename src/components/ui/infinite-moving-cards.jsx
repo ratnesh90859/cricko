@@ -2,6 +2,7 @@
 
 import { cn } from "../lib/utils";
 import React, { useEffect, useState } from "react";
+import PropTypes from 'prop-types';
 
 export const InfiniteMovingCards = ({
   items,
@@ -17,45 +18,42 @@ export const InfiniteMovingCards = ({
   useEffect(() => {
     if (containerRef.current && scrollerRef.current) {
       const scrollerContent = Array.from(scrollerRef.current.children);
-
       scrollerContent.forEach((item) => {
         const duplicatedItem = item.cloneNode(true);
-        duplicatedItem.classList.add("bg-[#1f5156]", "text-white"); // Tailwind CSS classes for background and text color
+        duplicatedItem.classList.add("bg-[#1f5156]", "text-white");
         scrollerRef.current.appendChild(duplicatedItem);
       });
-
       getDirection();
       getSpeed();
       setStart(true);
     }
-
+    const getDirection = () => {
+      if (containerRef.current) {
+        containerRef.current.style.setProperty(
+          "--animation-direction",
+          direction === "left" ? "forwards" : "reverse"
+        );
+      }
+    };
+    const getSpeed = () => {
+      if (containerRef.current) {
+        const durationMap = {
+          fast: "20s",
+          normal: "40s",
+          slow: "80s"
+        };
+        containerRef.current.style.setProperty(
+          "--animation-duration",
+          durationMap[speed] || "20s"
+        );
+      }
+    };
     return () => {
       // Cleanup if needed (e.g., removing event listeners)
     };
-  }, []);
+  }, [speed, direction]);
 
-  const getDirection = () => {
-    if (containerRef.current) {
-      containerRef.current.style.setProperty(
-        "--animation-direction",
-        direction === "left" ? "forwards" : "reverse"
-      );
-    }
-  };
 
-  const getSpeed = () => {
-    if (containerRef.current) {
-      const durationMap = {
-        fast: "20s",
-        normal: "40s",
-        slow: "80s"
-      };
-      containerRef.current.style.setProperty(
-        "--animation-duration",
-        durationMap[speed] || "20s"
-      );
-    }
-  };
 
   return (
     <div
@@ -67,7 +65,6 @@ export const InfiniteMovingCards = ({
     >
       <div className="absolute inset-y-0 left-0 w-16 bg-gradient-to-r from-white to-transparent z-10 opacity-75" />
       <div className="absolute inset-y-0 right-0 w-16 bg-gradient-to-l from-white to-transparent z-10 opacity-75" />
-
       <ul
         ref={scrollerRef}
         className={cn(
@@ -83,7 +80,7 @@ export const InfiniteMovingCards = ({
           >
             <img
               src={item.image}
-              alt={item.title || 'Card Image'} // Use meaningful alt text
+              alt={item.title || 'Card Image'}
               className="w-full h-[80px] md:h-[100px] object-cover rounded-md mb-2"
             />
             <h2 className="text-sm md:text-base font-semibold">{item.title}</h2>
@@ -91,10 +88,10 @@ export const InfiniteMovingCards = ({
             <a
               href={item.link}
               className="text-xs md:text-sm hover:underline"
-              style={{ color: "#f5b921" }} 
+              style={{ color: "#f5b921" }}
               target="_blank"
               rel="noopener noreferrer"
-              aria-label={`Read more about ${item.title}`} // Add aria-label for accessibility
+              aria-label={`Read more about ${item.title}`}
             >
               Read more
             </a>
@@ -103,4 +100,26 @@ export const InfiniteMovingCards = ({
       </ul>
     </div>
   );
+};
+
+InfiniteMovingCards.propTypes = {
+  items: PropTypes.arrayOf(
+    PropTypes.shape({
+      image: PropTypes.string.isRequired,
+      title: PropTypes.string.isRequired,
+      description: PropTypes.string.isRequired,
+      link: PropTypes.string.isRequired,
+    })
+  ).isRequired,
+  direction: PropTypes.oneOf(['left', 'right']),
+  speed: PropTypes.oneOf(['fast', 'normal', 'slow']),
+  pauseOnHover: PropTypes.bool,
+  className: PropTypes.string,
+};
+
+InfiniteMovingCards.defaultProps = {
+  direction: 'left',
+  speed: 'fast',
+  pauseOnHover: true,
+  className: '',
 };
